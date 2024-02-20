@@ -1,9 +1,10 @@
 package com.makeup.domain;
-import com.makeup.dto.MemberDto;
-import jakarta.persistence.*;
-import lombok.*;
 
-import java.time.LocalDate;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import lombok.*;
 
 @Getter
 @Setter // 이 어노테이션 추가
@@ -11,7 +12,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class Member extends BaseTime {
+public class Member {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,56 +28,4 @@ public class Member extends BaseTime {
     private int numOfFollower;
     private String calendar;    // 나중에 아직은 잘 모르겠음
 
-
 }
-
-    // 아직 수정이 필요함!
-/*
-    public static Member toMember(MemberDto memberDto, College college) {
-=======
-    public static Member toMember(MemberDto memberDto) {
->>>>>>> 645a430270432c7fb21a21c5cda3ac8495c21ba5
-        return Member.builder()
-                .username(memberDto.getUsername())
-                .password(memberDto.getPassword())
-                .birthYear(memberDto.getBirthYear())
-                .gender(memberDto.getGender())
-                .age(findAge(memberDto.getBirthYear()))
-                .build();
-    }
-
-    public static int findAge(String birthYear){
-        LocalDate today = LocalDate.now();
-        int todayYear = today.getYear();
-        int todayMonth = today.getMonthValue();
-        int todayDay = today.getDayOfMonth();
-
-        int year = Integer.parseInt(birthYear.substring(0,3));
-        int month = Integer.parseInt(birthYear.substring(4,5));
-        int day = Integer.parseInt(birthYear.substring(6,7));
-
-        int americanAge = todayYear - year;
-
-        // 생일이 안지났으면 - 1
-        if(month > todayMonth) {
-            americanAge--;
-        } else if(month == todayMonth) {
-            if(day > todayDay) {
-                americanAge--;
-            }
-        }
-
-        return americanAge;
-    }
-
-}
-
-<<<<<<< HEAD
- */
-//=======
-//
-//
-//
-//
-//>>>>>>> 645a430270432c7fb21a21c5cda3ac8495c21ba5
-

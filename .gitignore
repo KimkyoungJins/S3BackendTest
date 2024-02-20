@@ -28,7 +28,7 @@ out/
 
 ### NetBeans ###
 /nbproject/private/
-/nbbuild/
+nbbuild/
 /dist/
 /nbdist/
 /.nb-gradle/
@@ -36,5 +36,4 @@ out/
 ### VS Code ###
 .vscode/
 
-src/main/resources/application.yml
-application*.properties
+*.yml

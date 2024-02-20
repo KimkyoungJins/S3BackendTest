@@ -1,69 +1,150 @@
 package com.makeup.controller;
-
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.ListObjectsV2Request;
+import com.amazonaws.services.s3.model.ListObjectsV2Result;
+import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.makeup.domain.Post;
+import com.makeup.dto.ImageDto;
+import com.makeup.dto.PostCreateRequestDto;
 import com.makeup.service.PostService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import java.util.List;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@RequiredArgsConstructor
 @RestController
-@RequestMapping("/posts")
 public class PostController {
 
+    @Autowired
+    private PostService awsS3Service;
+    private final AmazonS3 s3Client;
     private final PostService postService;
 
-    @Autowired      //의존성 주입 기능 사용 PostService 클래스에 있는 인스턴스 사용 가능
-    public PostController(PostService postService) {
-        this.postService = postService;
+    @Value("${app.s3.bucket}")
+    private String bucketName;
+
+
+//    @GetMapping("/images/main")
+//    public ResponseEntity<?> listImages() {
+//        List<ImageInfo> imageInfos = awsS3Service.getFilesUrls();
+//        Map<String, Object> responseBody = new HashMap<>();
+//        responseBody.put("urls", imageInfos);
+//        return ResponseEntity.ok(responseBody);
+//    }
+
+//     메인화면 이미지 목록을 조회함
+//    @GetMapping("/images/main")
+//    public ResponseEntity<List<String>> listImages() {
+//        List<String> urls = awsS3Service.getFilesUrls();
+//        return ResponseEntity.ok(urls);
+//    }
+@GetMapping("/images/main")
+public ResponseEntity<List<ImageDto>> listImages() {
+    ListObjectsV2Result result = s3Client.listObjectsV2(new ListObjectsV2Request().withBucketName(bucketName));
+    List<S3ObjectSummary> objects = result.getObjectSummaries();
+
+    List<ImageDto> imageDtos = new ArrayList<>();
+    String[] texts = {"#취준생", "#가을뮤트", "#여름쿨톤",
+            "#고양이메이크업", "#봄웜톤", "#데이트",
+            "#봄웜톤", "#여름쿨톤", "#취준생", "#취준생",
+            "#데이트", "#취준생", "#깔끔하게", "#깔끔하게",
+            "#한복메이크업", "#발랄"};
+
+    for (int i = 0; i < objects.size(); i++) {
+        S3ObjectSummary obj = objects.get(i);
+        ImageDto dto = new ImageDto();
+        dto.setImageId(String.valueOf(i + 1)); // 예시로 id를 순서대로 설정
+        dto.setPostId("100" + (i + 1)); // postId 설정 예시
+        dto.setUserId("user" + (100 + i)); // userId 설정 예시
+        dto.setImageUrl(s3Client.getUrl(bucketName, obj.getKey()).toString()); // 이미지 URL 설정
+        dto.setText(texts[i % texts.length]); // 텍스트 순환적으로 설정
+        imageDtos.add(dto);
     }
 
-    // 게시물을 생성함!
-    @PostMapping
-    public Post createPost(@RequestParam("title") String title,
-                            @RequestParam("content") String content,
-                            @RequestParam("image") MultipartFile image, // 클라이언트로 전송된 파일을 Spring에서 처리할 수 있도록 해줌
-                            @RequestParam("userId") Long userId) {
-        return postService.createPost(title, content, image, userId);   // 메소드 호출을 통하여서 게시글을 형성한다.
-    }
-
-    // 게시물 목록을 조회함!
-    // 게시글의 모든 목록을 조회하고 조회된 게시글의 목록을 반환함.
-    @GetMapping     // 클라이언트로 부터 Get요청을 받으면 실행된다.
-    public List<Post> getAllPosts() {
-        return postService.getAllPosts();   // 모든 Post를 볼 수 있는 메소드 호출함. PostService 클래스에서
-    }
-
-    // 게시물을 상세 조회함!
-    // 즉, 요청된 게시물의 ID를 파라미터로 전달받습니다.
-    @GetMapping("/{postId}")
-    public Post getPostById(@PathVariable Long postId) {
-        return postService.getPostById(postId);     // URL 경로에서 받은 postId를 인자로 전단한다.
-                                                    // 이 서비스 메서드는 해당 ID를 가진 게시물을 데이터 베이스에서
-                                                    // 찾아 반환한다.
-    }
-
-    // 게시물 공감을 추가함!
-    @PostMapping("/{postId}/like")
-    public int addLikeToPost(@PathVariable Long postId) {
-        return postService.addLikeToPost(postId);       // 추출된 PostId의 값이 파라미터로 전달이 된다,
-                                                        // 메서드를 통하여서 업데이트 된 좋아요 수를 쿨라이언트에게 반환한다.
-    }
-
-    // 게시물을 수정함!
-    @PutMapping("/{postId}")
-    public Post updatePost(@PathVariable Long postId,
-                            @RequestParam("title") String title,
-                            @RequestParam("content") String content,
-                            @RequestParam("image") MultipartFile image) {
-        return postService.updatePost(postId, title, content, image);
-    }
-
-    // 게시물을 삭제함!
-//    postService.deletePost(postId);: PostService의
-//    deletePost 메서드를 호출하면서, 삭제할 게시물의 ID를 인자로 전달한다.
-    @DeleteMapping("/{postId}/delete")
-    public void deletePost(@PathVariable Long postId) {
-        postService.deletePost(postId);
-    }
+    return ResponseEntity.ok(imageDtos);
 }
+    // 게시물 등록
+    @PostMapping("/create")
+    public ResponseEntity<?> createPost(@RequestPart("json") PostCreateRequestDto postCreateRequestDto,
+                                        @RequestPart("file") MultipartFile file) {
+        try {
+            Post post = postService.createPost(postCreateRequestDto, file); // 수정된 서비스 메서드 호출
+
+            // 성공 응답 구성
+            Map<String, Object> responseBody = new HashMap<>();
+            responseBody.put("status", "success");
+            responseBody.put("message", "게시물이 생성되었습니다.");
+            responseBody.put("data", Map.of(
+                    "postId", post.getPostId(),
+                    "title", post.getTitle(),
+                    "content", post.getContent(),
+                    "imageUrl", post.getImageUrl()
+
+            ));
+            return ResponseEntity.ok().body(responseBody);
+        } catch (Exception e) {
+            // 실패 응답 구성
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("status", "error");
+            errorResponse.put("message", "게시물 생성 중 오류 발생");
+            errorResponse.put("error", Map.of("message", e.getMessage()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+
+    // 게시물 삭제로직
+    @DeleteMapping("/{postId}")
+    public ResponseEntity<?> deletePost(@PathVariable Long postId) {
+        try {
+            postService.deletePost(postId);
+            Map<String, Object> responseBody = new HashMap<>();
+            responseBody.put("status", "success");
+            responseBody.put("message", "게시물이 삭제되었습니다.");
+            return ResponseEntity.ok().body(responseBody);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("status", "error");
+            errorResponse.put("message", "게시물 삭제 중 오류 발생");
+            errorResponse.put("error", Map.of("message", e.getMessage()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+
+    // 게시물 업데이트 로직
+    @PostMapping("/{postId}")
+    public ResponseEntity<?> updatePost(@PathVariable Long postId,
+                                       @RequestPart("json") PostCreateRequestDto postCreateRequestDto,
+                                       @RequestPart(value = "file", required = false) MultipartFile file) {
+        try {
+            Post post = postService.updatePost(postId, postCreateRequestDto, file);
+            Map<String, Object> responseBody = new HashMap<>();
+            responseBody.put("status", "success");
+            responseBody.put("message", "게시물이 수정되었습니다.");
+            responseBody.put("data", Map.of(
+                    "postId", post.getPostId(),
+                    "title", post.getTitle(),
+                    "content", post.getContent(),
+                    "imageUrl", post.getImageUrl()
+            ));
+            return ResponseEntity.ok().body(responseBody);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("status", "error");
+            errorResponse.put("message", "게시물 수정 중 오류 발생");
+            errorResponse.put("error", Map.of("message", e.getMessage()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+
+
+}
+
