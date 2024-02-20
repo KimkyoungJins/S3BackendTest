@@ -3,11 +3,9 @@ package com.makeup.dto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-
 @AllArgsConstructor
 @Getter
-public class PostCreateRequestDto {
-    private Long memberId;
+public class PostUpdateRequestDto {
     private String title;
     private String content;
     private String text;

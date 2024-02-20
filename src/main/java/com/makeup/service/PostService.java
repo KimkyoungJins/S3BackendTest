@@ -6,6 +6,7 @@ import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.makeup.domain.Post;
 import com.makeup.dto.PostCreateRequestDto;
+import com.makeup.dto.PostUpdateRequestDto;
 import com.makeup.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -45,10 +46,10 @@ public class PostService {
     }
 
     //updatePost 메소드 추가
-    public Post updatePost(Long id, PostCreateRequestDto postCreateRequestDto, MultipartFile file) {
-        Post post = postRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("해당 게시물이 없습니다."));
+    public Post updatePost(Long postId, PostUpdateRequestDto requestDto, MultipartFile file) {
+        Post post = postRepository.findById(postId).orElseThrow(() -> new IllegalArgumentException("해당 게시물이 없습니다."));
         String url = s3Service.uploadFile(file); // 파일 업로드 로직 호출
-        post.update(postCreateRequestDto.getTitle(), postCreateRequestDto.getContent(), url);   // update 메소드 호출
+        post.update(requestDto.getTitle(), requestDto.getContent(), url);   // update 메소드 호출
 
         return postRepository.save(post); // 수정된 Post 객체를 반환
 }   

@@ -7,7 +7,9 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 
@@ -40,10 +42,17 @@ public class AwsS3Config {
     }
 
     @Bean
-    public S3Client s3Client () {
+    public S3Client s3Client() {
+        System.setProperty("aws.region", region);
         return S3Client.builder()
-                .credentialsProvider(DefaultCredentialsProvider.create())
-                .region(Region.of(region)) // 예: Region.US_EAST_1
+                .region(Region.of(region))
+                .credentialsProvider(StaticCredentialsProvider.create(
+                                AwsBasicCredentials.create(
+                                        accessKey,
+                                        secretKey
+                                )
+                        )
+                )
                 .build();
     }
 }

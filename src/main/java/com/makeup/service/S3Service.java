@@ -13,7 +13,7 @@ import java.io.IOException;
 @Service
 @RequiredArgsConstructor
 public class S3Service {
-    private String bucketName = "your-bucket-name";
+    private String bucketName = "makeuplion";
     private final S3Client s3Client;
 
     public String uploadFile(MultipartFile file) {

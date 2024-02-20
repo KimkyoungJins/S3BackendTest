@@ -18,6 +18,7 @@ public class Post {
     private String content;
     private int likeCount;
     private String imageUrl;
+    private String text;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "memberId") // 데이터베이스의 실제 컬럼 이름으로 수정

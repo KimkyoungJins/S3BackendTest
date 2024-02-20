@@ -6,6 +6,8 @@ import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.makeup.domain.Post;
 import com.makeup.dto.ImageDto;
 import com.makeup.dto.PostCreateRequestDto;
+import com.makeup.dto.PostUpdateRequestDto;
+import com.makeup.response.BaseResponse;
 import com.makeup.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +23,8 @@ import java.util.List;
 import java.util.Map;
 
 @RequiredArgsConstructor
-@RestController
+@RestController()
+@RequestMapping("/posts")
 public class PostController {
 
     @Autowired
@@ -47,8 +50,8 @@ public class PostController {
 //        List<String> urls = awsS3Service.getFilesUrls();
 //        return ResponseEntity.ok(urls);
 //    }
-@GetMapping("/images/main")
-public ResponseEntity<List<ImageDto>> listImages() {
+@GetMapping("/images")
+public BaseResponse<List<ImageDto>> listImages() {
     ListObjectsV2Result result = s3Client.listObjectsV2(new ListObjectsV2Request().withBucketName(bucketName));
     List<S3ObjectSummary> objects = result.getObjectSummaries();
 
@@ -70,62 +73,45 @@ public ResponseEntity<List<ImageDto>> listImages() {
         imageDtos.add(dto);
     }
 
-    return ResponseEntity.ok(imageDtos);
+    return BaseResponse.success(imageDtos);
 }
     // 게시물 등록
-    @PostMapping("/create")
-    public ResponseEntity<?> createPost(@RequestPart("json") PostCreateRequestDto postCreateRequestDto,
+    @PostMapping("/")
+    public BaseResponse<?> createPost(@RequestPart("json") PostCreateRequestDto postCreateRequestDto,
                                         @RequestPart("file") MultipartFile file) {
-        try {
+//        try {
             Post post = postService.createPost(postCreateRequestDto, file); // 수정된 서비스 메서드 호출
 
-            // 성공 응답 구성
-            Map<String, Object> responseBody = new HashMap<>();
-            responseBody.put("status", "success");
-            responseBody.put("message", "게시물이 생성되었습니다.");
-            responseBody.put("data", Map.of(
-                    "postId", post.getPostId(),
-                    "title", post.getTitle(),
-                    "content", post.getContent(),
-                    "imageUrl", post.getImageUrl()
-
-            ));
-            return ResponseEntity.ok().body(responseBody);
-        } catch (Exception e) {
-            // 실패 응답 구성
-            Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("status", "error");
-            errorResponse.put("message", "게시물 생성 중 오류 발생");
-            errorResponse.put("error", Map.of("message", e.getMessage()));
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
-        }
+            return BaseResponse.success(post);
+//        }
+//        catch (Exception e) {
+//            // 실패 응답 구성
+//            Map<String, Object> errorResponse = new HashMap<>();
+//            errorResponse.put("status", "error");
+//            errorResponse.put("message", "게시물 생성 중 오류 발생");
+//            errorResponse.put("error", Map.of("message", e.getMessage()));
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+//        }
     }
 
     // 게시물 삭제로직
     @DeleteMapping("/{postId}")
-    public ResponseEntity<?> deletePost(@PathVariable Long postId) {
+    public BaseResponse<?> deletePost(@PathVariable Long postId) {
         try {
             postService.deletePost(postId);
-            Map<String, Object> responseBody = new HashMap<>();
-            responseBody.put("status", "success");
-            responseBody.put("message", "게시물이 삭제되었습니다.");
-            return ResponseEntity.ok().body(responseBody);
+            return BaseResponse.ok();
         } catch (Exception e) {
-            Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("status", "error");
-            errorResponse.put("message", "게시물 삭제 중 오류 발생");
-            errorResponse.put("error", Map.of("message", e.getMessage()));
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+            return BaseResponse.error(e.getMessage());
         }
     }
 
     // 게시물 업데이트 로직
-    @PostMapping("/{postId}")
+    @PutMapping("/{postId}")
     public ResponseEntity<?> updatePost(@PathVariable Long postId,
-                                       @RequestPart("json") PostCreateRequestDto postCreateRequestDto,
+                                       @RequestPart("json") PostUpdateRequestDto requestDto,
                                        @RequestPart(value = "file", required = false) MultipartFile file) {
         try {
-            Post post = postService.updatePost(postId, postCreateRequestDto, file);
+            Post post = postService.updatePost(postId, requestDto, file);
             Map<String, Object> responseBody = new HashMap<>();
             responseBody.put("status", "success");
             responseBody.put("message", "게시물이 수정되었습니다.");
