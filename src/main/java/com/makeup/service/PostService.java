@@ -46,14 +46,24 @@ public class PostService {
                 .build();
         return postRepository.save(post); // 생성된 Post 객체를 반환
     }
-    //updatePost 메소드 추가
+
+
+    // updatePost 메소드 추가
     public Post updatePost(Long postId, PostUpdateRequestDto requestDto, MultipartFile file) {
         Post post = postRepository.findById(postId).orElseThrow(() -> new IllegalArgumentException("해당 게시물이 없습니다."));
         String url = s3Service.uploadFile(file); // 파일 업로드 로직 호출
         post.update(requestDto.getTitle(), requestDto.getContent(), url);   // update 메소드 호출
 
         return postRepository.save(post); // 수정된 Post 객체를 반환
-}   
+    }
+//    //updatePost 메소드 추가
+//    public Post updatePost(Long postId, PostUpdateRequestDto requestDto, MultipartFile file) {
+//        Post post = postRepository.findById(postId).orElseThrow(() -> new IllegalArgumentException("해당 게시물이 없습니다."));
+//        String url = s3Service.uploadFile(file); // 파일 업로드 로직 호출
+//        post.update(requestDto.getTitle(), requestDto.getContent(), url);   // update 메소드 호출
+//
+//        return postRepository.save(post); // 수정된 Post 객체를 반환
+//}
 
     // DeltePost 메소드 추가
     public void deletePost(Long id) {

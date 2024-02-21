@@ -25,6 +25,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 @RestController()
 @RequestMapping("/posts")
+@CrossOrigin(origins = "http://localhost:3000")
 public class PostController {
 
     @Autowired
@@ -132,7 +133,8 @@ public BaseResponse<List<ImageDto>> listImages() {
             responseBody.put("data", Map.of(
                     "postId", post.getPostId(),
                     "title", post.getTitle(),
-                    "content", post.getContent(),
+                    "brandName", post.getBrandName(),
+                    "cosName", post.getCosName(),
                     "imageUrl", post.getImageUrl()
             ));
             return ResponseEntity.ok().body(responseBody);
