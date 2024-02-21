@@ -34,17 +34,18 @@ public class PostService {
         return objects.stream().map(obj -> s3Client.getUrl(bucketName, obj.getKey()).toString()).collect(Collectors.toList());
     }
 
-    // 게시물 생성
     public Post createPost(PostCreateRequestDto postCreateRequestDto, MultipartFile file) {
         String url = s3Service.uploadFile(file); // 파일 업로드 로직 호출
         Post post = Post.builder()
                 .title(postCreateRequestDto.getTitle())
-                .content(postCreateRequestDto.getContent())
+                .brandName(postCreateRequestDto.getBrandName())
+                .cosName(postCreateRequestDto.getCosName())
                 .imageUrl(url)
+                .text(postCreateRequestDto.getText()) // 필요에 따라 처리
+                // .member 처리 필요, 예를 들어, memberId를 사용하여 member 객체를 조회하고 설정
                 .build();
         return postRepository.save(post); // 생성된 Post 객체를 반환
     }
-
     //updatePost 메소드 추가
     public Post updatePost(Long postId, PostUpdateRequestDto requestDto, MultipartFile file) {
         Post post = postRepository.findById(postId).orElseThrow(() -> new IllegalArgumentException("해당 게시물이 없습니다."));

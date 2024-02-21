@@ -16,9 +16,11 @@ public class Post {
 
     private String title;
     private String content;
-    private int likeCount;
     private String imageUrl;
     private String text;
+    private String brandName;
+    private String cosName;
+
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "memberId") // 데이터베이스의 실제 컬럼 이름으로 수정

@@ -55,12 +55,14 @@ public BaseResponse<List<ImageDto>> listImages() {
     ListObjectsV2Result result = s3Client.listObjectsV2(new ListObjectsV2Request().withBucketName(bucketName));
     List<S3ObjectSummary> objects = result.getObjectSummaries();
 
+
+    // 이미지랑 텍스트 매치를 해야한다.
     List<ImageDto> imageDtos = new ArrayList<>();
-    String[] texts = {"#취준생", "#가을뮤트", "#여름쿨톤",
-            "#고양이메이크업", "#봄웜톤", "#데이트",
-            "#봄웜톤", "#여름쿨톤", "#취준생", "#취준생",
-            "#데이트", "#취준생", "#깔끔하게", "#깔끔하게",
-            "#한복메이크업", "#발랄"};
+    String[] texts = {"한번에 취뽀하고 싶을 때", "아이&립 만으로 가을느낌 내고 싶을 때", "더운 날 깔끔한 메이크업으로 기분 전환",
+            "눈꼬리를 높여 고양이가 되세요.", "벚꽃보러 봄 메이크업을 해보는 건 어떨까요?", "발그레 블러셔로 데이트 느낌을 줘보세요.",
+            "복숭아 메이크업을 해보자요", "일자 눈썹을 해보자요", "확실하게 면접에서 눈길을 잡자", "가을 웜톤인듯 아닌듯 분위기있게",
+            "여리여리한 눈매를 강조", "착한 고양이상으로 변신", "메이크업은 여배우처럼", " 뮤트하게 꾸안꾸",
+            "한복 입고 데이트갈 때", "단발하고 처음 메이크업할 때"};
 
     for (int i = 0; i < objects.size(); i++) {
         S3ObjectSummary obj = objects.get(i);
@@ -68,6 +70,7 @@ public BaseResponse<List<ImageDto>> listImages() {
         dto.setImageId(String.valueOf(i + 1)); // 예시로 id를 순서대로 설정
         dto.setPostId("100" + (i + 1)); // postId 설정 예시
         dto.setUserId("user" + (100 + i)); // userId 설정 예시
+        System.out.println("obj.getKey().toString()=" + obj.getKey().toString());
         dto.setImageUrl(s3Client.getUrl(bucketName, obj.getKey()).toString()); // 이미지 URL 설정
         dto.setText(texts[i % texts.length]); // 텍스트 순환적으로 설정
         imageDtos.add(dto);
